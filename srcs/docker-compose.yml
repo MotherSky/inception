@@ -1,0 +1,119 @@
+version: "3.6"
+
+services:
+  mariadb:
+    container_name: mariadb
+    image: mariadb
+    env_file: .env
+    restart: on-failure
+    build:
+      context: ./requirements/mariadb
+      args:
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        MYSQL_DATABASE: ${MYSQL_DATABASE}
+        MYSQL_USER: ${MYSQL_USER}
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    expose:
+      - "3306"
+    volumes:
+      - database:/var/lib/mysql
+    networks:
+      - network
+    
+  redis:
+    container_name: redis
+    image: redis
+    restart: on-failure
+    build: ./requirements/bonus/redis
+    expose:
+      - "6379"
+    networks:
+      - network
+  
+  wordpress:
+    container_name: wordpress
+    image: wordpress
+    env_file: ./.env
+    restart: on-failure
+    build:
+      context: ./requirements/wordpress
+      args:
+        WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+        WORDPRESS_DB_USER: ${MYSQL_USER}
+        WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - "mariadb"
+      - "redis"
+    expose:
+      - "9000"
+    volumes:
+      - wordpress:/var/www/wordpress
+    networks:
+      - network
+  
+  nginx:
+    container_name: nginx
+    image: nginx
+    restart: on-failure
+    build: ./requirements/nginx
+    depends_on:
+      - "wordpress"
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress:/var/www/wordpress
+      - ./requirements/bonus/restaurant:/var/www/wordpress/restaurant
+    networks:
+      - network
+  
+  adminer:
+    container_name: adminer
+    image: adminer
+    build: ./requirements/bonus/adminer
+    restart: on-failure
+    depends_on:
+      - "nginx"
+    volumes:
+      - wordpress:/var/www/wordpress
+    networks:
+      - network
+  
+  cadvisor:
+    container_name: cadvisor
+    image: cadvisor
+    build: ./requirements/bonus/cadvisor
+    restart: on-failure
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - network
+
+volumes: 
+  database:
+      name: db
+      driver: local
+      driver_opts:
+        type: none
+        o: bind
+        device: '/home/ataleb/data/db'
+  wordpress:
+      name: wp
+      driver: local
+      driver_opts:
+        type: none
+        o: bind
+        device: '/home/ataleb/data/wp'
+
+networks:
+  network:
+    name: network
+    driver: bridge
+
+
+# docker compose up 

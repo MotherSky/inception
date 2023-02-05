@@ -1,0 +1,26 @@
+server {
+
+    listen 443 ssl;
+
+    ssl_certificate /etc/ssl/certs/selfsigned-nginx.crt;
+
+    ssl_certificate_key /etc/ssl/private/selfsigned-nginx.key;
+
+    ssl_protocols TLSv1.2;
+
+    root /var/www/wordpress;
+
+    index index.php restaurant.html index.html index.htm index.nginx-debian.html;
+
+    server_name ataleb.42.fr https://ataleb.42.fr;
+    location / {
+            try_files $uri $uri/ /index.php?$args;
+        }
+
+    location ~ \.php$ {
+        fastcgi_pass wordpress:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
