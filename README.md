@@ -20,3 +20,14 @@ Here is diagram showing the network:
 
 ![network diagram](network%20diagram.png)
 
+### Build
+
+A makefile is included so you can simply ```make``` to start building the image and running the containers. also you can:
+* ```make list``` : list the running containers, images, and active networks.
+* ```make clean``` : deletes containers, images, volumes and networks
+* ```make prune``` :  removes all unused containers, networks, images and optionally, volumes.
+* ```make down``` : docker-compose down
+
+### Notes
+
+***the .env file present in the srcs folder is for demonstration purposes only. Always make sure to include it in the .gitignore.***
